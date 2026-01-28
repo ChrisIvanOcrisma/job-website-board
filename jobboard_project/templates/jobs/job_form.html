@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Edit Job{% else %}Post a Job{% endif %} - JobBoard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card dashboard-card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-briefcase"></i>
+                    {% if form.instance.pk %}
+                        Edit Job: {{ form.instance.title }}
+                    {% else %}
+                        Post a New Job
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3 text-primary">Basic Information</h5>
+                    <div class="row">
+                        <div class="col-md-8">
+                            {{ form.title|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.category|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.location|as_crispy_field }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.employment_type|as_crispy_field }}
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check mt-4">
+                                {{ form.is_remote }}
+                                <label class="form-check-label" for="{{ form.is_remote.id_for_label }}">
+                                    Remote Position
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.salary_min|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.salary_max|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.salary_currency|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.deadline|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3 text-primary">Job Details</h5>
+                    
+                    {{ form.description|as_crispy_field }}
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3 text-primary">Requirements</h5>
+
+                    <!-- Job Requirements -->
+                    <div class="mb-3">
+                        <label class="form-label">Job Requirements *</label>
+                        <textarea class="form-control" name="requirements" rows="4" required>{{ form.instance.requirements|default:"" }}</textarea>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-3 text-primary">Qualifications</h5>
+
+                    <!-- Education & Experience -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Minimum Education Required *</label>
+                            <select class="form-select" name="education_level" required>
+                                <option value="">Select education level</option>
+                                <option value="HIGH_SCHOOL" {% if form.instance.education_level == 'HIGH_SCHOOL' %}selected{% endif %}>High School Diploma</option>
+                                <option value="VOCATIONAL" {% if form.instance.education_level == 'VOCATIONAL' %}selected{% endif %}>Vocational/TESDA</option>
+                                <option value="ASSOCIATE" {% if form.instance.education_level == 'ASSOCIATE' %}selected{% endif %}>Associate Degree</option>
+                                <option value="BACHELOR" {% if form.instance.education_level == 'BACHELOR' %}selected{% endif %}>Bachelor's Degree</option>
+                                <option value="MASTER" {% if form.instance.education_level == 'MASTER' %}selected{% endif %}>Master's Degree</option>
+                                <option value="DOCTORATE" {% if form.instance.education_level == 'DOCTORATE' %}selected{% endif %}>Doctorate</option>
+                                <option value="NONE" {% if form.instance.education_level == 'NONE' %}selected{% endif %}>No formal education required</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Years of Experience Required *</label>
+                            <select class="form-select" name="experience_years" required>
+                                <option value="">Select years of experience</option>
+                                <option value="0" {% if form.instance.experience_years == 0 %}selected{% endif %}>No experience (Entry level)</option>
+                                <option value="1" {% if form.instance.experience_years == 1 %}selected{% endif %}>1-2 years</option>
+                                <option value="3" {% if form.instance.experience_years == 3 %}selected{% endif %}>3-5 years</option>
+                                <option value="6" {% if form.instance.experience_years == 6 %}selected{% endif %}>6-10 years</option>
+                                <option value="11" {% if form.instance.experience_years == 11 %}selected{% endif %}>10+ years</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Qualifications -->
+                    <div class="mb-3">
+                        <label class="form-label">Qualifications *</label>
+                        <textarea class="form-control" name="qualifications" rows="3" required>{{ form.instance.qualifications|default:"" }}</textarea>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="mb-3">
+                        <label class="form-label">Skills</label>
+                        <input type="text" class="form-control" name="skills" value="{{ form.instance.skills|default:'' }}">
+                    </div>
+
+                    <!-- Benefits -->
+                    <div class="mb-3">
+                        <label class="form-label">Benefits</label>
+                        <textarea class="form-control" name="benefits" rows="3">{{ form.instance.benefits|default:"" }}</textarea>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3 text-primary">Application Details</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.application_email|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.application_url|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3 text-primary">Visibility</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Active (Accepting Applications)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mb-3">
+                                {{ form.is_featured }}
+                                <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">
+                                    Feature this Job
+                                </label>
+                                <small class="text-muted d-block">Featured jobs appear at the top of search results</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% if form.instance.pk %}{% url 'job_detail' slug=form.instance.slug %}{% else %}{% url 'dashboard' %}{% endif %}" 
+                           class="btn btn-outline-secondary me-md-2">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i>
+                            {% if form.instance.pk %}
+                                Update Job
+                            {% else %}
+                                Post Job
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set default deadline to 30 days from now if not set
+document.addEventListener('DOMContentLoaded', function() {
+    const deadlineField = document.getElementById('{{ form.deadline.id_for_label }}');
+    if (!deadlineField.value) {
+        const today = new Date();
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + 30);
+        const formattedDate = futureDate.toISOString().split('T')[0];
+        deadlineField.value = formattedDate;
+    }
+});
+</script>
+{% endblock %}

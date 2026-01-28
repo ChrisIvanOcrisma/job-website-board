@@ -1,0 +1,552 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Applications - JobBoard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-people"></i> Applications</h1>
+        <p class="text-muted">
+            {% if job %}
+            Applications for: <strong>{{ job.title }}</strong>
+            {% else %}
+            All applications for your company
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Statuses</option>
+                            <option value="RECEIVED">Received</option>
+                            <option value="REVIEWED">Reviewed</option>
+                            <option value="SHORTLISTED">Shortlisted</option>
+                            <option value="INTERVIEW">Interview</option>
+                            <option value="OFFER">Offer</option>
+                            <option value="HIRED">Hired</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" class="form-control" id="dateFilter" placeholder="Date Applied">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchFilter" placeholder="Search by applicant name or job title">
+                            <button class="btn btn-outline-secondary" type="button" id="clearFilters">
+                                <i class="bi bi-x-circle"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stat-card">
+            <h3>{{ total_applications }}</h3>
+            <p>Total</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #20c997 0%, #198754 100%);">
+            <h3>{{ new_applications }}</h3>
+            <p>New</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);">
+            <h3>{{ shortlisted_count }}</h3>
+            <p>Shortlisted</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);">
+            <h3>{{ hired_count }}</h3>
+            <p>Hired</p>
+        </div>
+    </div>
+</div>
+
+<!-- Applications Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                {% if applications %}
+                
+                <!-- Bulk Selection Controls -->
+                <div class="row mb-3 align-items-center" id="bulkControls" style="display: none;">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <span class="me-3" id="selectedCount">0 selected</span>
+                            <button class="btn btn-outline-primary btn-sm me-2" onclick="selectAllRows()">
+                                <i class="bi bi-check-all"></i> Select All
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="deselectAllRows()">
+                                <i class="bi bi-x-circle"></i> Deselect All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#bulkActionModal">
+                            <i class="bi bi-check-all"></i> Apply Actions to Selected
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover" id="applicationsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
+                                </th>
+                                <th>Applicant</th>
+                                <th>Job Title</th>
+                                <th>Applied</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                            <tr data-status="{{ application.status }}" 
+                                data-date="{{ application.applied_at|date:'Y-m-d' }}"
+                                data-applicant="{{ application.applicant.username }}"
+                                data-job="{{ application.job.title }}"
+                                data-id="{{ application.id }}">
+                                <td>
+                                    <input type="checkbox" class="row-checkbox" 
+                                           value="{{ application.id }}" 
+                                           onchange="updateBulkControls()">
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0">
+                                            {% if application.applicant.profile_picture %}
+                                            <img src="{{ application.applicant.profile_picture.url }}" 
+                                                 alt="{{ application.applicant.username }}"
+                                                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi bi-person text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-0">{{ application.applicant.username }}</h6>
+                                            <small class="text-muted">{{ application.applicant.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="{% url 'job_detail' slug=application.job.slug %}" class="text-decoration-none">
+                                        {{ application.job.title }}
+                                    </a>
+                                </td>
+                                <td>{{ application.applied_at|timesince }} ago</td>
+                                <td>
+                                    <span class="badge status-{{ application.status|lower }}">
+                                        {{ application.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'application_detail' pk=application.pk %}" class="btn btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" 
+                                                data-bs-toggle="dropdown">
+                                            <span class="visually-hidden">Toggle Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="{{ application.resume.url }}" target="_blank">
+                                                    <i class="bi bi-file-earmark"></i> View Resume
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{% url 'application_status' pk=application.pk %}">
+                                                    <i class="bi bi-pencil"></i> Update Status
+                                                </a>
+                                            </li>
+                                            <!-- WITHDRAWED STATUS INDICATOR -->
+                                            {% if application.status == 'WITHDRAWN' %}
+                                            <li>
+                                                <a class="dropdown-item text-dark" href="#">
+                                                    <i class="bi bi-arrow-left"></i> Withdrawn by Applicant
+                                                </a>
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Export Options -->
+                <div class="mt-4">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                data-bs-toggle="dropdown">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% if job %}
+                            <li>
+                                <a class="dropdown-item export-link" href="#" data-type="csv" data-job="{{ job.slug }}">
+                                    <i class="bi bi-filetype-csv"></i> Export as CSV
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item export-link" href="#" data-type="excel" data-job="{{ job.slug }}">
+                                    <i class="bi bi-file-earmark-excel"></i> Export as Excel
+                                </a>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a class="dropdown-item export-link" href="#" data-type="csv">
+                                    <i class="bi bi-filetype-csv"></i> Export as CSV
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item export-link" href="#" data-type="excel">
+                                    <i class="bi bi-file-earmark-excel"></i> Export as Excel
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="window.print(); return false;">
+                                    <i class="bi bi-printer"></i> Print List
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Bulk Actions Button (optional, modal trigger na lang sa bulk controls) -->
+                    <div class="btn-group ms-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" 
+                                data-bs-target="#bulkActionModal">
+                            <i class="bi bi-check-all"></i> Bulk Actions
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-people fs-1 text-muted"></i>
+                    <h4 class="mt-3">No applications yet</h4>
+                    <p class="text-muted">
+                        {% if job %}
+                        No one has applied for this job yet.
+                        {% else %}
+                        Your company hasn't received any applications yet.
+                        {% endif %}
+                    </p>
+                    {% if job %}
+                    <a href="{% url 'job_detail' slug=job.slug %}" class="btn btn-primary">
+                        View Job Posting
+                    </a>
+                    {% else %}
+                    <a href="{% url 'job_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Post a Job
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Action Modal -->
+<div class="modal fade" id="bulkActionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Actions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="selectedCountText">Apply actions to selected applications:</p>
+                <div class="mb-3">
+                    <label class="form-label">Update Status To:</label>
+                    <select class="form-select" id="bulkStatus">
+                        <option value="">Select Status</option>
+                        <option value="REVIEWED">Reviewed</option>
+                        <option value="SHORTLISTED">Shortlisted</option>
+                        <option value="INTERVIEW">Interview</option>
+                        <option value="REJECTED">Rejected</option>
+                        <option value="HIRED">Hired</option>
+                        <option value="WITHDRAWN">Mark as Withdrawn</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Send Email:</label>
+                    <select class="form-select" id="bulkEmail">
+                        <option value="">Select Email Template</option>
+                        <option value="shortlisted">Shortlisted Notification</option>
+                        <option value="interview">Interview Invitation</option>
+                        <option value="rejected">Rejection Notification</option>
+                        <option value="offer">Job Offer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="applyBulkActions()">Apply Actions</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const statusFilter = document.getElementById('statusFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const searchFilter = document.getElementById('searchFilter');
+    const clearFilters = document.getElementById('clearFilters');
+    const tableRows = document.querySelectorAll('#applicationsTable tbody tr');
+    
+    function filterTable() {
+        const status = statusFilter.value;
+        const date = dateFilter.value;
+        const search = searchFilter.value.toLowerCase();
+        
+        tableRows.forEach(row => {
+            let show = true;
+            
+            // Filter by status
+            if (status && row.dataset.status !== status) {
+                show = false;
+            }
+            
+            // Filter by date
+            if (date && row.dataset.date !== date) {
+                show = false;
+            }
+            
+            // Filter by search
+            if (search) {
+                const applicant = row.dataset.applicant.toLowerCase();
+                const job = row.dataset.job.toLowerCase();
+                if (!applicant.includes(search) && !job.includes(search)) {
+                    show = false;
+                }
+            }
+            
+            row.style.display = show ? '' : 'none';
+        });
+        
+        updateBulkControls();
+    }
+    
+    statusFilter.addEventListener('change', filterTable);
+    dateFilter.addEventListener('change', filterTable);
+    searchFilter.addEventListener('input', filterTable);
+    
+    clearFilters.addEventListener('click', function() {
+        statusFilter.value = '';
+        dateFilter.value = '';
+        searchFilter.value = '';
+        filterTable();
+    });
+    
+    // Export functionality
+    document.querySelectorAll('.export-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const exportType = this.dataset.type;
+            const jobSlug = this.dataset.job || '';
+            
+            // Get selected IDs for bulk export
+            const selectedIds = getSelectedApplicationIds();
+            let url = '';
+            
+            if (exportType === 'csv') {
+                url = jobSlug ? 
+                    `/applications/${jobSlug}/export/csv/` : 
+                    '/applications/export/csv/';
+            } else if (exportType === 'excel') {
+                url = jobSlug ? 
+                    `/applications/${jobSlug}/export/excel/` : 
+                    '/applications/export/excel/';
+            }
+            
+            // Add selected IDs as query parameter if any are selected
+            if (selectedIds.length > 0) {
+                url += `?selected=${selectedIds.join(',')}`;
+            }
+            
+            window.location.href = url;
+        });
+    });
+    
+    // Initialize bulk controls
+    updateBulkControls();
+});
+
+// Bulk Selection Functions
+function getSelectedApplicationIds() {
+    const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+function getVisibleRows() {
+    return document.querySelectorAll('#applicationsTable tbody tr:not([style*="display: none"])');
+}
+
+function updateBulkControls() {
+    const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+    const bulkControls = document.getElementById('bulkControls');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const selectedCountText = document.getElementById('selectedCountText');
+    
+    if (selectedCount > 0) {
+        bulkControls.style.display = 'flex';
+        selectedCountSpan.textContent = `${selectedCount} selected`;
+        if (selectedCountText) {
+            selectedCountText.textContent = `Apply actions to ${selectedCount} selected application(s):`;
+        }
+    } else {
+        bulkControls.style.display = 'none';
+    }
+    
+    // Update select all checkbox
+    const visibleRows = getVisibleRows();
+    const visibleCheckboxes = Array.from(visibleRows).map(row => 
+        row.querySelector('.row-checkbox')
+    );
+    const allChecked = visibleCheckboxes.every(cb => cb.checked);
+    const someChecked = visibleCheckboxes.some(cb => cb.checked);
+    
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (allChecked) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+    } else if (someChecked) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+    } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+}
+
+function toggleSelectAll(checkbox) {
+    const visibleRows = getVisibleRows();
+    visibleRows.forEach(row => {
+        const rowCheckbox = row.querySelector('.row-checkbox');
+        if (rowCheckbox) {
+            rowCheckbox.checked = checkbox.checked;
+        }
+    });
+    updateBulkControls();
+}
+
+function selectAllRows() {
+    const visibleRows = getVisibleRows();
+    visibleRows.forEach(row => {
+        const rowCheckbox = row.querySelector('.row-checkbox');
+        if (rowCheckbox) {
+            rowCheckbox.checked = true;
+        }
+    });
+    updateBulkControls();
+}
+
+function deselectAllRows() {
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    updateBulkControls();
+}
+
+// Bulk Actions Function
+function applyBulkActions() {
+    const selectedIds = getSelectedApplicationIds();
+    const status = document.getElementById('bulkStatus').value;
+    const email = document.getElementById('bulkEmail').value;
+    
+    if (selectedIds.length === 0) {
+        alert('Please select at least one application.');
+        return;
+    }
+    
+    if (!status && !email) {
+        alert('Please select at least one action.');
+        return;
+    }
+    
+    if (confirm(`Apply these actions to ${selectedIds.length} application(s)?`)) {
+        // Prepare data for AJAX request
+        const formData = new FormData();
+        formData.append('selected_ids', selectedIds.join(','));
+        if (status) formData.append('status', status);
+        if (email) formData.append('email_template', email);
+        
+        // Send AJAX request to update applications
+        fetch('/applications/bulk-update/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Successfully updated ${data.updated} application(s)!`);
+                $('#bulkActionModal').modal('hide');
+                
+                // Refresh page to show updated status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating applications.');
+        });
+    }
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

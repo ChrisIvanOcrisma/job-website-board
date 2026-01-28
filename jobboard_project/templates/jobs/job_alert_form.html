@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Job Alert - JobBoard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="mb-4">
+                <h1><i class="bi bi-bell-plus text-primary"></i> Create Job Alert</h1>
+                <p class="text-muted">Get notified when new jobs match your criteria</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Alert Name -->
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label">
+                                <i class="bi bi-tag"></i> Alert Name
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="id_name" 
+                                   name="name" 
+                                   value="{{ request.POST.name|default:'' }}"
+                                   placeholder="e.g., Python Developer Alerts">
+                            <div class="form-text">Give this alert a descriptive name</div>
+                        </div>
+                        
+                        <!-- Keyword -->
+                        <div class="mb-3">
+                            <label for="id_keyword" class="form-label">
+                                <i class="bi bi-search"></i> Keyword
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="id_keyword" 
+                                   name="keyword" 
+                                   value="{{ request.POST.keyword|default:'' }}"
+                                   placeholder="e.g., python, django, react">
+                            <div class="form-text">
+                                Job title, skills, or company name
+                            </div>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label for="id_location" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Location
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="id_location" 
+                                   name="location" 
+                                   value="{{ request.POST.location|default:'' }}"
+                                   placeholder="e.g., Manila, Remote, Cebu">
+                            <div class="form-text">
+                                Leave empty for any location
+                            </div>
+                        </div>
+                        
+                        <!-- Job Type -->
+                        <div class="mb-3">
+                            <label for="id_employment_type" class="form-label">
+                                <i class="bi bi-briefcase"></i> Job Type
+                            </label>
+                            <select class="form-select" id="id_employment_type" name="employment_type">
+                                <option value="">Any Type</option>
+                                <option value="FULL_TIME" {% if request.POST.employment_type == 'FULL_TIME' %}selected{% endif %}>Full-time</option>
+                                <option value="PART_TIME" {% if request.POST.employment_type == 'PART_TIME' %}selected{% endif %}>Part-time</option>
+                                <option value="CONTRACT" {% if request.POST.employment_type == 'CONTRACT' %}selected{% endif %}>Contract</option>
+                                <option value="INTERNSHIP" {% if request.POST.employment_type == 'INTERNSHIP' %}selected{% endif %}>Internship</option>
+                                <option value="REMOTE" {% if request.POST.employment_type == 'REMOTE' %}selected{% endif %}>Remote</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Remote Work -->
+                        <div class="mb-3">
+                            <label for="id_is_remote" class="form-label">
+                                <i class="bi bi-house"></i> Remote Work
+                            </label>
+                            <select class="form-select" id="id_is_remote" name="is_remote">
+                                <option value="">Any</option>
+                                <option value="true" {% if request.POST.is_remote == 'true' %}selected{% endif %}>Remote Only</option>
+                                <option value="false" {% if request.POST.is_remote == 'false' %}selected{% endif %}>On-site Only</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Frequency -->
+                        <div class="mb-3">
+                            <label for="id_frequency" class="form-label">
+                                <i class="bi bi-clock"></i> Alert Frequency
+                            </label>
+                            <select class="form-select" id="id_frequency" name="frequency">
+                                <option value="DAILY" {% if request.POST.frequency == 'DAILY' %}selected{% endif %}>Daily</option>
+                                <option value="WEEKLY" {% if request.POST.frequency == 'WEEKLY' %}selected{% endif %}>Weekly</option>
+                                <option value="INSTANT" {% if request.POST.frequency == 'INSTANT' %}selected{% endif %}>Instant (as soon as posted)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'job_alerts' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Alerts
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-bell-plus"></i> Create Alert
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Tips -->
+            <div class="alert alert-light mt-4">
+                <h6><i class="bi bi-lightbulb"></i> Tips:</h6>
+                <ul class="mb-0">
+                    <li>Use specific keywords (e.g., "python django" not just "programmer")</li>
+                    <li>For remote jobs, set "Remote Only" and leave location empty</li>
+                    <li>Instant alerts send emails immediately when jobs are posted</li>
+                    <li>Check your email settings to ensure you receive notifications</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

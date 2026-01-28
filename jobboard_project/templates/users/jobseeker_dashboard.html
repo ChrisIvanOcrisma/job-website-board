@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Job Seeker Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-speedometer2"></i> Job Seeker Dashboard</h1>
+        <p class="text-muted">Welcome back, {{ user.username }}! Track your job search progress.</p>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);">
+            <h3>{{ applications.count }}</h3>
+            <p>Applications</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #20c997 0%, #198754 100%);">
+            <h3>{{ saved_jobs.count }}</h3>
+            <p>Saved Jobs</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);">
+            <h3>{{ interviews_count }}</h3>
+            <p>Interviews</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #6f42c1 0%, #d63384 100%);">
+            <h3>{{ profile_completion }}%</h3>
+            <p>Profile Complete</p>
+        </div>
+    </div>
+</div>
+
+<!-- Application Status -->
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-text"></i> Recent Applications</h5>
+                <a href="{% url 'job_list' %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-search"></i> Find Jobs
+                </a>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Company</th>
+                                <th>Applied</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'job_detail' slug=application.job.slug %}" class="text-decoration-none">
+                                        {{ application.job.title }}
+                                    </a>
+                                </td>
+                                <td>{{ application.job.company.name }}</td>
+                                <td>{{ application.applied_at|timesince }} ago</td>
+                                <td>
+                                    <span class="badge bg-{% if application.status == 'HIRED' %}success{% elif application.status == 'REJECTED' %}danger{% elif application.status == 'SHORTLISTED' %}warning{% elif application.status == 'INTERVIEW' %}info{% elif application.status == 'WITHDRAWN' %}dark{% else %}secondary{% endif %}">
+                                        {{ application.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'application_detail' pk=application.pk %}" 
+                                           class="btn btn-outline-primary" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        
+                                        <!-- WITHDRAW BUTTON -->
+                                        {% if application.can_withdraw %}
+                                        <form method="POST" action="{% url 'application_withdraw' pk=application.pk %}" 
+                                              class="d-inline" onsubmit="return confirm('Withdraw this application?')">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger" title="Withdraw Application">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-file-text fs-1 text-muted"></i>
+                    <p class="mt-2">You haven't applied to any jobs yet.</p>
+                    <a href="{% url 'job_list' %}" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Browse Jobs
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'job_list' %}" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Search Jobs
+                    </a>
+                    <a href="{% url 'saved_jobs' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-bookmark"></i> Saved Jobs
+                    </a>
+                    <a href="{% url 'job_alerts' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-bell"></i> Job Alerts
+                    </a>
+                   <a href="/users/edit-profile/" class="btn btn-outline-info">
+    <i class="bi bi-person-circle"></i> Edit Profile
+</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Completion -->
+        <div class="card dashboard-card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person-check"></i> Profile Completion</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3" style="height: 20px;">
+                    <div class="progress-bar" role="progressbar" 
+                         data-width="{{ profile_completion|default:0 }}"
+                         aria-valuenow="{{ profile_completion|default:0 }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ profile_completion|default:0 }}%
+                    </div>
+                </div>
+                
+                <script>
+                // Initialize progress bar width
+                document.addEventListener('DOMContentLoaded', function() {
+                    const progressBar = document.querySelector('.card-body .progress-bar');
+                    if (progressBar) {
+                        const width = progressBar.getAttribute('data-width');
+                        progressBar.style.width = width + '%';
+                    }
+                });
+                </script>
+                
+                <ul class="list-unstyled">
+                    <li>
+                        {% if has_resume %}
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% else %}
+                        <i class="bi bi-circle text-muted"></i>
+                        {% endif %}
+                        <span class="ms-2">Upload Resume</span>
+                    </li>
+                    <li class="mt-2">
+                        {% if has_profile_pic %}
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% else %}
+                        <i class="bi bi-circle text-muted"></i>
+                        {% endif %}
+                        <span class="ms-2">Add Profile Picture</span>
+                    </li>
+                    <li class="mt-2">
+                        {% if has_skills %}
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% else %}
+                        <i class="bi bi-circle text-muted"></i>
+                        {% endif %}
+                        <span class="ms-2">Add Skills</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Saved Jobs -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-bookmark"></i> Saved Jobs</h5>
+                <a href="{% url 'saved_jobs' %}" class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for saved in saved_jobs|slice:":3" %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card job-card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ saved.job.title }}</h6>
+                                <p class="card-text small">
+                                    <i class="bi bi-building"></i> {{ saved.job.company.name }}<br>
+                                    <i class="bi bi-geo-alt"></i> {{ saved.job.location }}
+                                </p>
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge salary-badge">{{ saved.job.get_salary_range }}</span>
+                                    <a href="{% url 'job_detail' slug=saved.job.slug %}" class="btn btn-sm btn-primary">
+                                        Apply
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-4">
+                            <i class="bi bi-bookmark fs-1 text-muted"></i>
+                            <p class="mt-2">No saved jobs yet.</p>
+                            <p class="text-muted small">Save jobs you're interested in to apply later.</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.stat-card {
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+</style>
+{% endblock %}

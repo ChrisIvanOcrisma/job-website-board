@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ company.name }} - JobBoard{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --accent-color: #1abc9c;
+        --light-bg: #f8f9fa;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Smooth fade-in for logo and company name */
+    .company-header-wrapper {
+        opacity: 0;
+        animation: smoothFadeIn 1s ease-out forwards;
+        animation-delay: 0.2s;
+    }
+
+    @keyframes smoothFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Enhanced logo styling with smooth hover effect */
+    .company-logo-animated {
+        width: 140px;
+        height: 140px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .company-logo-animated:hover {
+        transform: scale(1.08);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .company-logo-placeholder-animated {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+        color: white;
+        font-size: 3rem;
+        border: 4px solid white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .company-logo-placeholder-animated:hover {
+        transform: scale(1.08);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Company name styling with subtle entrance */
+    .company-name-container {
+        opacity: 0;
+        animation: nameSlideIn 0.8s ease-out forwards;
+        animation-delay: 0.4s;
+    }
+
+    @keyframes nameSlideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* Professional Design Enhancements */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px var(--shadow-color);
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        overflow: hidden;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px) scale(1.01);
+    }
+
+    .dashboard-card {
+        background: white;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-bottom: none;
+        padding: 1.2rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .card-header i {
+        margin-right: 8px;
+        transition: transform 0.3s ease;
+    }
+
+    .card-header:hover i {
+        transform: scale(1.1);
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Text and Typography */
+    h1 {
+        color: var(--primary-color);
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 10px;
+    }
+
+    h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background: var(--accent-color);
+        border-radius: 2px;
+    }
+
+    .text-muted {
+        color: #6c757d;
+    }
+
+    .text-primary {
+        color: var(--secondary-color) !important;
+    }
+
+    /* Badges and Labels */
+    .badge {
+        border-radius: 20px;
+        padding: 0.5em 0.9em;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .salary-badge {
+        background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+        color: #2d3436;
+    }
+
+    .remote-badge {
+        background: linear-gradient(135deg, #a29bfe, #81ecec);
+        color: white;
+    }
+
+    /* Buttons with delayed fade-in */
+    .btn {
+        border-radius: 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1.5rem;
+        opacity: 0;
+        animation: smoothFadeIn 0.8s ease-out forwards;
+        animation-delay: 0.6s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .btn-primary:hover::before {
+        left: 100%;
+    }
+
+    .btn-outline-primary {
+        color: var(--secondary-color);
+        border: 2px solid var(--secondary-color);
+    }
+
+    .btn-outline-primary:hover {
+        background: var(--secondary-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* List Groups */
+    .list-group-item {
+        border: none;
+        border-bottom: 1px solid #eee;
+        padding: 1.25rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .list-group-item:hover {
+        background: linear-gradient(90deg, rgba(52, 152, 219, 0.05), transparent);
+        transform: translateX(5px);
+        border-left: 4px solid var(--secondary-color);
+    }
+
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+
+    /* Alert Styling */
+    .alert-success {
+        background: linear-gradient(135deg, rgba(26, 188, 156, 0.1), rgba(52, 152, 219, 0.1));
+        border: none;
+        border-left: 4px solid var(--accent-color);
+        border-radius: 10px;
+        color: #2c3e50;
+        opacity: 0;
+        animation: smoothFadeIn 0.8s ease-out forwards;
+        animation-delay: 0.8s;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .company-logo-animated, .company-logo-placeholder-animated {
+            width: 100px;
+            height: 100px;
+            font-size: 2rem;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .company-name-container {
+            animation-delay: 0.3s;
+        }
+        
+        .btn {
+            animation-delay: 0.5s;
+        }
+        
+        .alert-success {
+            animation-delay: 0.6s;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-8">
+            <!-- Company Header with smooth transition -->
+            <div class="card dashboard-card mb-4">
+                <div class="card-body company-header-wrapper">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <!-- Logo with smooth transition -->
+                            {% if company.logo %}
+                            <img src="{{ company.logo.url }}" alt="{{ company.name }}" 
+                                 class="company-logo-animated">
+                            {% else %}
+                            <div class="company-logo-placeholder-animated">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-9">
+                            <!-- Company name and info with animation -->
+                            <div class="company-name-container">
+                                <h1 class="mb-2">{{ company.name }}</h1>
+                                
+                                <p class="text-muted mb-3">
+                                    <i class="bi bi-geo-alt"></i> {{ company.location }}
+                                    {% if company.industry %}
+                                    • <i class="bi bi-tag"></i> {{ company.industry }}
+                                    {% endif %}
+                                </p>
+                                
+                                {% if company.website %}
+                                <p class="mb-2">
+                                    <i class="bi bi-globe text-primary"></i> 
+                                    <a href="{{ company.website }}" target="_blank" class="text-decoration-none">
+                                        {{ company.website }}
+                                    </a>
+                                </p>
+                                {% endif %}
+                                
+                                <div class="d-flex flex-wrap gap-3">
+                                    {% if company.size %}
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-people"></i> {{ company.size }} employees
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if company.founded_year %}
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-calendar"></i> Founded {{ company.founded_year }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if user == company.employer %}
+                                <a href="{% url 'company_update' %}" 
+                                   class="btn btn-outline-primary btn-sm mt-3">
+                                    <i class="bi bi-pencil"></i> Edit Profile
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Company Description - NO ANIMATION -->
+            <div class="card dashboard-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-file-text"></i> About Us</h5>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ company.description|linebreaks }}</p>
+                </div>
+            </div>
+            
+            <!-- Active Jobs - NO ANIMATION -->
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-briefcase"></i> Open Positions</h5>
+                        <span class="badge bg-primary">{{ active_jobs|length }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if active_jobs %}
+                    <div class="list-group list-group-flush">
+                        {% for job in active_jobs %}
+                        <a href="{% url 'job_detail' slug=job.slug %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ job.title }}</h6>
+                                <small class="text-muted">{{ job.created_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-2">
+                                <span class="badge salary-badge me-2">{{ job.get_salary_range }}</span>
+                                <span class="badge bg-secondary me-2">{{ job.employment_type }}</span>
+                                {% if job.is_remote %}
+                                <span class="badge remote-badge">Remote</span>
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt"></i> {{ job.location }}
+                            </small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-briefcase fs-1 text-muted mb-3"></i>
+                        <p class="mt-2 fw-bold">No open positions at the moment.</p>
+                        <p class="text-muted small">Check back later for new opportunities.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column - NO ANIMATION -->
+        <div class="col-md-4">
+            <!-- Company Info -->
+            <div class="card dashboard-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Company Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        {% if company.address %}
+                        <li class="mb-3">
+                            <strong><i class="bi bi-geo-alt-fill text-primary"></i> Address:</strong><br>
+                            <span class="text-muted">{{ company.address|linebreaksbr }}</span>
+                        </li>
+                        {% endif %}
+                        
+                        {% if company.industry %}
+                        <li class="mb-3">
+                            <strong><i class="bi bi-tag text-primary"></i> Industry:</strong><br>
+                            <span class="text-muted">{{ company.industry }}</span>
+                        </li>
+                        {% endif %}
+                        
+                        {% if company.size %}
+                        <li class="mb-3">
+                            <strong><i class="bi bi-people text-primary"></i> Company Size:</strong><br>
+                            <span class="text-muted">{{ company.size }}</span>
+                        </li>
+                        {% endif %}
+                        
+                        {% if company.founded_year %}
+                        <li class="mb-3">
+                            <strong><i class="bi bi-calendar text-primary"></i> Founded:</strong><br>
+                            <span class="text-muted">{{ company.founded_year }}</span>
+                        </li>
+                        {% endif %}
+                        
+                        <li>
+                            <strong><i class="bi bi-clock text-primary"></i> Member Since:</strong><br>
+                            <span class="text-muted">{{ company.created_at|date:"F d, Y" }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Contact Company -->
+            {% if user.is_job_seeker %}
+            <div class="card dashboard-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-envelope"></i> Interested in this company?</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">
+                        Apply to their open positions to get in touch with the hiring team.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'job_list' %}?company={{ company.name }}" class="btn btn-primary">
+                            <i class="bi bi-briefcase"></i> View All Jobs
+                        </a>
+                        {% if user != company.employer %}
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#followModal">
+                            <i class="bi bi-bell"></i> Follow Company
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Verification Badge -->
+            {% if company.is_verified %}
+            <div class="alert alert-success mt-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle fs-4 me-2"></i>
+                    <div>
+                        <strong>Verified Company</strong>
+                        <p class="small mb-0 mt-1">This company has been verified by JobBoard.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Follow Modal -->
+<div class="modal fade" id="followModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Follow {{ company.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Get notified when this company posts new jobs.</p>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="emailNotifications">
+                    <label class="form-check-label" for="emailNotifications">
+                        Receive email notifications
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Follow Company</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth page load
+    document.body.style.opacity = '0';
+    document.body.style.transition = 'opacity 0.6s ease';
+    
+    setTimeout(() => {
+        document.body.style.opacity = '1';
+    }, 100);
+});
+</script>
+{% endblock %}

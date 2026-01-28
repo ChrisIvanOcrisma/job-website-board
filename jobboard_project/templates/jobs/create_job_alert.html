@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Job Alert - JobBoard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="mb-4">
+                <h1><i class="bi bi-bell-plus text-primary"></i> Create Job Alert</h1>
+                <p class="text-muted">Get notified when new jobs match your criteria</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Alert Name -->
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label">
+                                <i class="bi bi-tag"></i> Alert Name *
+                            </label>
+                            <input type="text" 
+                                   class="form-control {% if form.name.errors %}is-invalid{% endif %}" 
+                                   id="id_name" 
+                                   name="name" 
+                                   value="{{ form.name.value|default:'' }}"
+                                   placeholder="e.g., Python Developer Alerts"
+                                   required>
+                            <div class="form-text">Give this alert a descriptive name</div>
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.name.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Keyword -->
+                        <div class="mb-3">
+                            <label for="id_keyword" class="form-label">
+                                <i class="bi bi-search"></i> Keyword
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="id_keyword" 
+                                   name="keyword" 
+                                   value="{{ form.keyword.value|default:'' }}"
+                                   placeholder="e.g., python, django, react">
+                            <div class="form-text">
+                                Job title, skills, or company name
+                            </div>
+                        </div>
+                        
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label for="id_location" class="form-label">
+                                <i class="bi bi-geo-alt"></i> Location
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="id_location" 
+                                   name="location" 
+                                   value="{{ form.location.value|default:'' }}"
+                                   placeholder="e.g., Manila, Remote, Cebu">
+                            <div class="form-text">
+                                Leave empty for any location
+                            </div>
+                        </div>
+                        
+                        <!-- Job Type -->
+                        <div class="mb-3">
+                            <label for="id_employment_type" class="form-label">
+                                <i class="bi bi-briefcase"></i> Job Type
+                            </label>
+                            <select class="form-select" id="id_employment_type" name="employment_type">
+                                <option value="">Any Type</option>
+                                {% for value, label in form.fields.employment_type.choices %}
+                                    {% if value %}
+                                    <option value="{{ value }}" 
+                                        {% if form.employment_type.value == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Remote Work -->
+                        <div class="mb-3">
+                            <label for="id_is_remote" class="form-label">
+                                <i class="bi bi-house"></i> Remote Work
+                            </label>
+                            <select class="form-select" id="id_is_remote" name="is_remote">
+                                {% for value, label in form.fields.is_remote.choices %}
+                                <option value="{{ value }}" 
+                                    {% if form.is_remote.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label for="id_category" class="form-label">
+                                <i class="bi bi-tags"></i> Category
+                            </label>
+                            <select class="form-select" id="id_category" name="category">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" 
+                                    {% if form.category.value|stringformat:"i" == category.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ category.name }} ({{ category.job_count }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Education Level -->
+                        <div class="mb-3">
+                            <label for="id_education_level" class="form-label">
+                                <i class="bi bi-mortarboard"></i> Education Level
+                            </label>
+                            <select class="form-select" id="id_education_level" name="education_level">
+                                {% for value, label in form.fields.education_level.choices %}
+                                <option value="{{ value }}" 
+                                    {% if form.education_level.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Experience Level -->
+                        <div class="mb-3">
+                            <label for="id_experience_years" class="form-label">
+                                <i class="bi bi-graph-up"></i> Experience Level
+                            </label>
+                            <select class="form-select" id="id_experience_years" name="experience_years">
+                                {% for value, label in form.fields.experience_years.choices %}
+                                <option value="{{ value }}" 
+                                    {% if form.experience_years.value|stringformat:"s" == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Salary Range -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_min_salary" class="form-label">
+                                    <i class="bi bi-currency-dollar"></i> Minimum Salary
+                                </label>
+                                <input type="number" 
+                                       class="form-control {% if form.min_salary.errors %}is-invalid{% endif %}" 
+                                       id="id_min_salary" 
+                                       name="min_salary" 
+                                       value="{{ form.min_salary.value|default:'' }}"
+                                       placeholder="e.g., 30000"
+                                       step="0.01">
+                                {% if form.min_salary.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.min_salary.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_max_salary" class="form-label">
+                                    <i class="bi bi-currency-dollar"></i> Maximum Salary
+                                </label>
+                                <input type="number" 
+                                       class="form-control {% if form.max_salary.errors %}is-invalid{% endif %}" 
+                                       id="id_max_salary" 
+                                       name="max_salary" 
+                                       value="{{ form.max_salary.value|default:'' }}"
+                                       placeholder="e.g., 80000"
+                                       step="0.01">
+                                {% if form.max_salary.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.max_salary.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Frequency -->
+                        <div class="mb-3">
+                            <label for="id_frequency" class="form-label">
+                                <i class="bi bi-clock"></i> Alert Frequency
+                            </label>
+                            <select class="form-select" id="id_frequency" name="frequency">
+                                {% for value, label in form.fields.frequency.choices %}
+                                <option value="{{ value }}" 
+                                    {% if form.frequency.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Email Notifications -->
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="id_email_notifications" 
+                                   name="email_notifications"
+                                   {% if form.email_notifications.value %}checked{% endif %}>
+                            <label class="form-check-label" for="id_email_notifications">
+                                <i class="bi bi-envelope"></i> <strong>Email Notifications</strong>
+                            </label>
+                            <div class="form-text">
+                                Receive email notifications for new matching jobs
+                            </div>
+                        </div>
+                        
+                        <!-- Active Alert -->
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="id_is_active" 
+                                   name="is_active"
+                                   {% if form.is_active.value %}checked{% endif %}>
+                            <label class="form-check-label" for="id_is_active">
+                                <strong>Active Alert</strong>
+                            </label>
+                            <div class="form-text">
+                                Turn off to temporarily disable this alert
+                            </div>
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'job_alerts' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Create Alert
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

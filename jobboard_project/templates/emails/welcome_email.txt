@@ -1,0 +1,43 @@
+Welcome to JobBoard!
+
+Hello {{ user.username }},
+
+Welcome to JobBoard! We're excited to have you as a {{ user.get_role_display }}.
+
+Your account has been successfully created. Here's what you can do next:
+
+{% if user.is_employer %}
+As an Employer:
+1. Create your company profile
+2. Post job openings
+3. Review applications
+4. Track job analytics
+
+Get Started: {{ site_url }}{% url 'company_create' %}
+{% endif %}
+
+{% if user.is_job_seeker %}
+As a Job Seeker:
+1. Search and apply for jobs
+2. Save interesting jobs
+3. Set up job alerts
+4. Track your applications
+
+Browse Jobs: {{ site_url }}{% url 'job_list' %}
+{% endif %}
+
+Quick Links:
+- Dashboard: {{ site_url }}{% url 'dashboard' %}
+- Browse Jobs: {{ site_url }}{% url 'job_list' %}
+- Company Directory: {{ site_url }}{% url 'company_list' %}
+- Help Center: {{ site_url }}/help/
+
+Need Help?
+If you have any questions, visit our Help Center or contact support at support@jobboard.com
+
+Best regards,
+The JobBoard Team
+{{ site_url }}
+
+---
+This is an automated message. Please do not reply.

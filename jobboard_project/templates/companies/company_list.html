@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Companies - JobBoard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fw-bold mb-2">Browse Companies</h1>
+            <p class="text-muted">Discover {{ companies.paginator.count|intcomma }} companies hiring on JobBoard</p>
+        </div>
+    </div>
+
+    <!-- Search Bar - Minor Improvement -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body p-3">
+                    <form method="GET" class="row g-2">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control" name="q" placeholder="Search companies by name or industry" 
+                                       value="{{ request.GET.q }}">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" name="industry" id="industrySelect">
+                                <option value="">All Industries</option>
+                                <option value="Technology" {% if request.GET.industry == 'Technology' %}selected{% endif %}>Technology</option>
+                                <option value="Healthcare" {% if request.GET.industry == 'Healthcare' %}selected{% endif %}>Healthcare</option>
+                                <option value="Finance" {% if request.GET.industry == 'Finance' %}selected{% endif %}>Finance</option>
+                                <option value="Education" {% if request.GET.industry == 'Education' %}selected{% endif %}>Education</option>
+                                <option value="Retail" {% if request.GET.industry == 'Retail' %}selected{% endif %}>Retail</option>
+                                <option value="Manufacturing" {% if request.GET.industry == 'Manufacturing' %}selected{% endif %}>Manufacturing</option>
+                                <option value="Hospitality" {% if request.GET.industry == 'Hospitality' %}selected{% endif %}>Hospitality</option>
+                                <option value="Construction" {% if request.GET.industry == 'Construction' %}selected{% endif %}>Construction</option>
+                                <option value="Transportation" {% if request.GET.industry == 'Transportation' %}selected{% endif %}>Transportation</option>
+                                <option value="Real Estate" {% if request.GET.industry == 'Real Estate' %}selected{% endif %}>Real Estate</option>
+                                <option value="Media & Entertainment" {% if request.GET.industry == 'Media & Entertainment' %}selected{% endif %}>Media & Entertainment</option>
+                                <option value="Energy" {% if request.GET.industry == 'Energy' %}selected{% endif %}>Energy</option>
+                                <option value="Telecommunications" {% if request.GET.industry == 'Telecommunications' %}selected{% endif %}>Telecommunications</option>
+                                <option value="Government" {% if request.GET.industry == 'Government' %}selected{% endif %}>Government</option>
+                                <option value="Non-Profit" {% if request.GET.industry == 'Non-Profit' %}selected{% endif %}>Non-Profit</option>
+                                <option value="Other" {% if request.GET.industry == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company List - White Cards with Subtle Blue Highlight -->
+    <div class="row g-3">
+        {% for company in companies %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0" style="background-color: #ffffff; border-left: 3px solid #e3f2fd;">
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.name }}" 
+                             class="company-logo mb-2 rounded-circle" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #e3f2fd;">
+                        {% else %}
+                        <div class="company-logo d-flex align-items-center justify-content-center mx-auto mb-2 rounded-circle" 
+                             style="width: 80px; height: 80px; background-color: #f8f9fa; color: #6c757d; border: 2px solid #e3f2fd;">
+                            <i class="bi bi-building fs-3"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <h5 class="card-title mb-1">
+                            <a href="{% url 'company_detail' slug=company.slug %}" class="text-decoration-none text-dark">
+                                {{ company.name }}
+                            </a>
+                        </h5>
+                        
+                        {% if company.is_verified %}
+                        <span class="badge" style="background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;">
+                            <i class="bi bi-check-circle"></i> Verified
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="card-text small text-muted text-center mb-3">
+                        <i class="bi bi-geo-alt"></i> {{ company.location }}
+                        {% if company.industry %}
+                        • <i class="bi bi-tag"></i> {{ company.industry }}
+                        {% endif %}
+                    </p>
+                    
+                    <p class="card-text small text-muted">
+                        {{ company.description|truncatewords:30 }}
+                    </p>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top" style="border-color: #f0f0f0 !important;">
+                        <span class="badge" style="background-color: #e3f2fd; color: #1976d2;">
+                            {{ company.jobs.count }} job{{ company.jobs.count|pluralize }}
+                        </span>
+                        <a href="{% url 'company_detail' slug=company.slug %}" class="btn btn-sm btn-outline-primary">
+                            View Details <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-building fs-1 text-muted"></i>
+                <h4 class="mt-3">No companies found</h4>
+                <p class="text-muted">Try adjusting your search criteria.</p>
+                <a href="?" class="btn btn-primary mt-2">
+                    Reset Filters
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination - Same -->
+    {% if companies.has_other_pages %}
+    <nav aria-label="Company pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if companies.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ companies.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.industry %}&industry={{ request.GET.industry }}{% endif %}">
+                    Previous
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for i in companies.paginator.page_range %}
+                {% if companies.number == i %}
+                <li class="page-item active">
+                    <span class="page-link">{{ i }}</span>
+                </li>
+                {% elif i > companies.number|add:'-3' and i < companies.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.industry %}&industry={{ request.GET.industry }}{% endif %}">{{ i }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if companies.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ companies.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.industry %}&industry={{ request.GET.industry }}{% endif %}">
+                    Next
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    <!-- Industry Filter - Same but better styling -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-tags"></i> Browse by Industry</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Technology" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-laptop fs-3 d-block text-primary mb-2"></i>
+                                    <small>Technology</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Healthcare" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-heart-pulse fs-3 d-block text-danger mb-2"></i>
+                                    <small>Healthcare</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Finance" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-cash-coin fs-3 d-block text-success mb-2"></i>
+                                    <small>Finance</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Education" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-mortarboard fs-3 d-block text-warning mb-2"></i>
+                                    <small>Education</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Retail" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-shop fs-3 d-block text-info mb-2"></i>
+                                    <small>Retail</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Manufacturing" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-gear fs-3 d-block text-secondary mb-2"></i>
+                                    <small>Manufacturing</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Hospitality" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-cup-straw fs-3 d-block text-dark mb-2"></i>
+                                    <small>Hospitality</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Construction" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-tools fs-3 d-block text-dark mb-2"></i>
+                                    <small>Construction</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Transportation" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-truck fs-3 d-block text-dark mb-2"></i>
+                                    <small>Transportation</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Real Estate" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-house fs-3 d-block text-dark mb-2"></i>
+                                    <small>Real Estate</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Media & Entertainment" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-film fs-3 d-block text-dark mb-2"></i>
+                                    <small>Media & Entertainment</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-4 text-center mb-3">
+                            <a href="?industry=Energy" class="text-decoration-none">
+                                <div class="p-3 border rounded hover-lift">
+                                    <i class="bi bi-lightning-charge fs-3 d-block text-warning mb-2"></i>
+                                    <small>Energy</small>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Minimal CSS Improvements - NO ERRORS */
+    .card {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .hover-lift {
+        transition: transform 0.2s;
+    }
+    
+    .hover-lift:hover {
+        transform: translateY(-3px);
+    }
+    
+    .company-logo {
+        border: 2px solid #f8f9fa;
+    }
+    
+    .badge {
+        border-radius: 20px;
+        padding: 0.35em 0.65em;
+    }
+    
+    .btn-outline-primary {
+        border-radius: 20px;
+    }
+    
+    .page-link {
+        border-radius: 5px;
+        margin: 0 2px;
+    }
+    
+    .input-group-text {
+        border-right: none;
+    }
+    
+    .form-control {
+        border-left: none;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit on industry select change
+    const industrySelect = document.getElementById('industrySelect');
+    if (industrySelect) {
+        industrySelect.addEventListener('change', function() {
+            this.form.submit();
+        });
+    }
+});
+</script>
+
+{% endblock %}

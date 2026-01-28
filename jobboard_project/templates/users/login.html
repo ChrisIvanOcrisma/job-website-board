@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - JobBoard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card border-0 shadow-lg">
+            <!-- Gradient Header like Register -->
+            <div class="card-header py-3" style="background: linear-gradient(135deg, #2A56C6 0%, #1E40AF 100%);">
+                <h4 class="mb-0 text-white text-center"><i class="bi bi-box-arrow-in-right me-2"></i> Login to JobBoard</h4>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST" id="loginForm">
+                    {% csrf_token %}
+                    
+                    <!-- Username/Email Field with Floating Label -->
+                    <div class="form-floating mb-4">
+                        <input type="text" 
+                               name="username" 
+                               class="form-control {% if form.errors %}shake error-border{% endif %}" 
+                               id="id_username" 
+                               placeholder=" "
+                               value="{{ form.username.value|default:'' }}">
+                        <label for="id_username"><i class="bi bi-person me-1"></i> Username or Email</label>
+                    </div>
+                    
+                    <!-- Password Field with Floating Label and Eye Icon -->
+                    <div class="form-floating mb-3 position-relative">
+                        <input type="password" 
+                               name="password" 
+                               class="form-control {% if form.errors %}shake error-border{% endif %}" 
+                               id="id_password" 
+                               placeholder=" ">
+                        <label for="id_password"><i class="bi bi-lock me-1"></i> Password</label>
+                        <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2 p-0" 
+                                id="togglePassword" style="z-index: 5;">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Simple Error Message - mawawala pag nag-type -->
+                    {% if form.errors %}
+                    <div class="mb-3 text-center" id="errorMessage">
+                        <span style="color: #dc3545; font-size: 0.85rem;">
+                            <i class="bi bi-exclamation-circle me-1"></i> Wrong username or password
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4 text-end">
+                        <a href="#" class="text-primary text-decoration-none small">
+                            <i class="bi bi-key me-1"></i> Forgot password?
+                        </a>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Login
+                        </button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-2">Don't have an account?</p>
+                    <a href="{% url 'register' %}" class="btn btn-outline-primary px-4">
+                        <i class="bi bi-person-plus me-2"></i> Register here
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Match Register Page Styling */
+.form-floating > .form-control {
+    height: calc(3rem + 2px);
+    line-height: 1.25;
+    padding-right: 40px; /* Space for eye icon */
+}
+.form-floating > .form-control:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2A56C6 0%, #1E40AF 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1E40AF 0%, #2A56C6 100%);
+    transform: translateY(-1px);
+}
+
+/* Card styling */
+.card {
+    border-radius: 10px;
+}
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* Eye icon styling */
+#togglePassword {
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+#togglePassword:hover {
+    color: #3B82F6;
+}
+
+/* SHAKE ANIMATION - konting uga lang */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+.shake {
+    animation: shake 0.2s ease-in-out;
+}
+
+/* Red border for error */
+.error-border {
+    border-color: #dc3545 !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form-control class and placeholder for floating labels
+    document.querySelectorAll('.form-floating input').forEach(input => {
+        input.classList.add('form-control');
+        input.placeholder = " ";
+        
+        // Remove error styling when user starts typing
+        input.addEventListener('input', function() {
+            // Remove shake and red border
+            this.classList.remove('shake', 'error-border');
+            
+            // Hide error message if exists
+            const errorMessage = document.getElementById('errorMessage');
+            if (errorMessage) {
+                errorMessage.style.display = 'none';
+            }
+        });
+    });
+    
+    // Toggle password visibility
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('id_password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    
+    if (togglePassword && passwordInput && eyeIcon) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Toggle eye icon
+            if (type === 'text') {
+                eyeIcon.classList.remove('bi-eye');
+                eyeIcon.classList.add('bi-eye-slash');
+            } else {
+                eyeIcon.classList.remove('bi-eye-slash');
+                eyeIcon.classList.add('bi-eye');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

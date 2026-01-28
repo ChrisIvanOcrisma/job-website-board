@@ -1,0 +1,172 @@
+<!-- applications/templates/applications/update_status.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Update Application Status - JobBoard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card dashboard-card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-pencil"></i> Update Application Status
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Simple Application Info -->
+                <div class="mb-4">
+                    <h5>Applicant: {{ application.full_name }}</h5>
+                    <p class="mb-1">Job: <strong>{{ application.job.title }}</strong></p>
+                    <p class="mb-3">
+                        Current Status: 
+                        <span class="badge status-{{ application.status|lower }}">
+                            {{ application.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+                
+                <form method="POST" id="statusForm">
+                    {% csrf_token %}
+                    
+                    <!-- Status Field -->
+                    <div class="mb-3">
+                        <label for="status" class="form-label">New Status *</label>
+                        <select class="form-select" id="status" name="status" required 
+                                onchange="toggleInterviewFields()">
+                            <option value="">Select a status...</option>
+                            <option value="PENDING">Pending Review</option>
+                            <option value="REVIEWED">Reviewed</option>
+                            <option value="SHORTLISTED">Shortlisted</option>
+                            <option value="INTERVIEW">Interview Scheduled</option>
+                            <option value="OFFER">Offer Extended</option>
+                            <option value="HIRED">Hired</option>
+                            <option value="REJECTED">Rejected</option>
+                            <option value="WITHDRAWN">Withdrawn</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Interview Details (Hidden by default) -->
+                    <div id="interviewFields" class="card mt-3" style="display: none;">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="bi bi-calendar-event"></i> Interview Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Date -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="interview_date" class="form-label">Interview Date *</label>
+                                    <input type="date" class="form-control" id="interview_date" 
+                                           name="interview_date">
+                                    <div class="form-text">Select a future date</div>
+                                </div>
+                                
+                                <!-- Time -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="interview_time" class="form-label">Interview Time *</label>
+                                    <input type="time" class="form-control" id="interview_time" 
+                                           name="interview_time" value="09:00">
+                                </div>
+                            </div>
+                            
+                            <!-- Location -->
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Interview Location *</label>
+                                <input type="text" class="form-control" id="location" 
+                                       name="location" placeholder="Enter venue/address">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" name="notes" rows="2" 
+                                  placeholder="Add any notes about this status change..."></textarea>
+                    </div>
+                    
+                    <!-- Email Notification -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sendEmail" name="send_email" checked>
+                            <label class="form-check-label" for="sendEmail">
+                                Send email notification to applicant
+                            </label>
+                            <div class="form-text">Applicant will receive an email about this status change.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'application_detail' pk=application.pk %}" class="btn btn-outline-secondary me-md-2">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Update Status
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show/hide interview fields based on status selection
+function toggleInterviewFields() {
+    const status = document.getElementById('status').value;
+    const interviewFields = document.getElementById('interviewFields');
+    
+    if (status === 'INTERVIEW') {
+        interviewFields.style.display = 'block';
+        
+        // Set minimum date to tomorrow
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const minDate = tomorrow.toISOString().split('T')[0];
+        document.getElementById('interview_date').min = minDate;
+        document.getElementById('interview_date').required = true;
+        document.getElementById('interview_time').required = true;
+        document.getElementById('location').required = true;
+    } else {
+        interviewFields.style.display = 'none';
+        document.getElementById('interview_date').required = false;
+        document.getElementById('interview_time').required = false;
+        document.getElementById('location').required = false;
+    }
+}
+
+// Form validation
+document.getElementById('statusForm').addEventListener('submit', function(e) {
+    const status = document.getElementById('status').value;
+    
+    if (status === 'INTERVIEW') {
+        const date = document.getElementById('interview_date').value;
+        const time = document.getElementById('interview_time').value;
+        const location = document.getElementById('location').value;
+        
+        if (!date || !time || !location) {
+            e.preventDefault();
+            alert('Please fill in all interview details (date, time, and location).');
+            return false;
+        }
+        
+        // Check if date is in the past
+        const selectedDate = new Date(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            e.preventDefault();
+            alert('Interview date cannot be in the past.');
+            return false;
+        }
+    }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleInterviewFields();
+});
+</script>
+{% endblock %}

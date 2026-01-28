@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Register - JobBoard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg">
+            <!-- Header with Gradient -->
+            <div class="card-header py-3" style="background: linear-gradient(135deg, #2A56C6 0%, #1E40AF 100%);">
+                <h4 class="mb-0 text-white text-center"><i class="bi bi-person-plus"></i> Create Account</h4>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <!-- Role Selection - Visual -->
+                    <div class="mb-4">
+                        <p class="text-center mb-3 fw-medium">Choose Account Type:</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <!-- Job Seeker -->
+                            <div class="text-center">
+                                <input type="radio" name="role" value="JOB_SEEKER" id="job_seeker" 
+                                       class="d-none" {% if not form.role.value or form.role.value == 'JOB_SEEKER' %}checked{% endif %}>
+                                <label for="job_seeker" class="cursor-pointer">
+                                    <div class="p-3 rounded-3 border-2 {% if not form.role.value or form.role.value == 'JOB_SEEKER' %}border-primary bg-primary bg-opacity-10{% else %}border-light{% endif %}" 
+                                         style="min-width: 120px;">
+                                        <i class="bi bi-briefcase fs-3 text-primary d-block mb-2"></i>
+                                        <span class="fw-bold d-block">Job Seeker</span>
+                                        <small class="text-muted">Find opportunities</small>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <!-- Employer -->
+                            <div class="text-center">
+                                <input type="radio" name="role" value="EMPLOYER" id="employer" 
+                                       class="d-none" {% if form.role.value == 'EMPLOYER' %}checked{% endif %}>
+                                <label for="employer" class="cursor-pointer">
+                                    <div class="p-3 rounded-3 border-2 {% if form.role.value == 'EMPLOYER' %}border-primary bg-primary bg-opacity-10{% else %}border-light{% endif %}" 
+                                         style="min-width: 120px;">
+                                        <i class="bi bi-building fs-3 text-success d-block mb-2"></i>
+                                        <span class="fw-bold d-block">Employer</span>
+                                        <small class="text-muted">Hire talent</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Display form errors -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger mb-4">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Please fix the errors below:
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <div class="small">{{ error }}</div>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Manual Form Fields with Bootstrap styling -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" name="username" id="id_username" 
+                                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                                       value="{{ form.username.value|default:'' }}"
+                                       placeholder=" "
+                                       required>
+                                <label for="id_username"><i class="bi bi-person me-1"></i> Username</label>
+                                {% if form.username.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.username.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="email" name="email" id="id_email" 
+                                       class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                                       value="{{ form.email.value|default:'' }}"
+                                       placeholder=" "
+                                       required>
+                                <label for="id_email"><i class="bi bi-envelope me-1"></i> Email</label>
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.email.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="form-floating position-relative">
+                                <input type="password" name="password1" id="id_password1" 
+                                       class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+                                       placeholder=" "
+                                       required>
+                                <label for="id_password1"><i class="bi bi-lock me-1"></i> Password</label>
+                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2 p-0" 
+                                        id="togglePassword1" style="z-index: 5;">
+                                    <i class="bi bi-eye" id="eyeIcon1"></i>
+                                </button>
+                                {% if form.password1.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.password1.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating position-relative">
+                                <input type="password" name="password2" id="id_password2" 
+                                       class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                                       placeholder=" "
+                                       required>
+                                <label for="id_password2"><i class="bi bi-lock-fill me-1"></i> Confirm Password</label>
+                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-2 p-0" 
+                                        id="togglePassword2" style="z-index: 5;">
+                                    <i class="bi bi-eye" id="eyeIcon2"></i>
+                                </button>
+                                {% if form.password2.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.password2.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                            <label class="form-check-label small" for="terms">
+                                I agree to the <a href="#" class="text-primary text-decoration-none">Terms & Conditions</a>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
+                            <i class="bi bi-person-plus me-2"></i> Create Account
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Login Link -->
+                <div class="text-center mt-4 pt-3 border-top">
+                    <p class="mb-2">Already have an account?</p>
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.cursor-pointer { cursor: pointer; }
+.cursor-pointer div { transition: all 0.2s ease; }
+.cursor-pointer:hover div { 
+    border-color: #3B82F6 !important; 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.form-floating > .form-control {
+    height: calc(3rem + 2px);
+    line-height: 1.25;
+    padding-right: 40px; /* Space for eye icon */
+}
+.form-floating > .form-control:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2A56C6 0%, #1E40AF 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1E40AF 0%, #2A56C6 100%);
+    transform: translateY(-1px);
+}
+
+/* Eye icon styling */
+.btn-link.position-absolute {
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+.btn-link.position-absolute:hover {
+    color: #3B82F6;
+}
+
+/* Hide Django's help text */
+.help-block, .helptext {
+    display: none;
+}
+
+/* Role radio styling */
+input[name="role"]:checked + label div {
+    border-color: #3B82F6 !important;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Role selection interaction
+    document.querySelectorAll('input[name="role"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove active state from all
+            document.querySelectorAll('label.cursor-pointer div').forEach(div => {
+                div.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+                div.classList.add('border-light');
+            });
+            
+            // Add active state to selected
+            const label = document.querySelector(`label[for="${this.id}"]`);
+            const div = label.querySelector('div');
+            div.classList.remove('border-light');
+            div.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+        });
+    });
+    
+    // Toggle password visibility for first password field
+    const togglePassword1 = document.getElementById('togglePassword1');
+    const passwordInput1 = document.getElementById('id_password1');
+    const eyeIcon1 = document.getElementById('eyeIcon1');
+    
+    if (togglePassword1 && passwordInput1 && eyeIcon1) {
+        togglePassword1.addEventListener('click', function() {
+            const type = passwordInput1.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput1.setAttribute('type', type);
+            
+            // Toggle eye icon
+            if (type === 'text') {
+                eyeIcon1.classList.remove('bi-eye');
+                eyeIcon1.classList.add('bi-eye-slash');
+            } else {
+                eyeIcon1.classList.remove('bi-eye-slash');
+                eyeIcon1.classList.add('bi-eye');
+            }
+        });
+    }
+    
+    // Toggle password visibility for second password field
+    const togglePassword2 = document.getElementById('togglePassword2');
+    const passwordInput2 = document.getElementById('id_password2');
+    const eyeIcon2 = document.getElementById('eyeIcon2');
+    
+    if (togglePassword2 && passwordInput2 && eyeIcon2) {
+        togglePassword2.addEventListener('click', function() {
+            const type = passwordInput2.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput2.setAttribute('type', type);
+            
+            // Toggle eye icon
+            if (type === 'text') {
+                eyeIcon2.classList.remove('bi-eye');
+                eyeIcon2.classList.add('bi-eye-slash');
+            } else {
+                eyeIcon2.classList.remove('bi-eye-slash');
+                eyeIcon2.classList.add('bi-eye');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,37 @@
+New Jobs Matching Your Alert - {{ date|date:"F d, Y" }}
+
+Hello {{ user.username }},
+
+We found {{ jobs|length }} new job{{ jobs|pluralize }} matching your alert criteria:
+
+Your Alert Criteria:
+{% if alert.keyword %}Keyword: {{ alert.keyword }}{% endif %}
+{% if alert.location %}Location: {{ alert.location }}{% endif %}
+{% if alert.category %}Category: {{ alert.category.name }}{% endif %}
+{% if alert.is_remote %}Remote Only: Yes{% endif %}
+
+Matching Jobs:
+{% for job in jobs %}
+========================================
+{{ job.title }}
+{{ job.company.name }}
+Location: {{ job.location }}{% if job.is_remote %} (Remote){% endif %}
+Salary: {{ job.get_salary_range }}
+Type: {{ job.get_employment_type_display }}
+
+{{ job.description|truncatewords:30 }}
+
+View Job: {{ site_url }}{{ job.get_absolute_url }}
+Apply Now: {{ site_url }}{{ job.get_absolute_url }}
+{% endfor %}
+
+========================================
+View All Matching Jobs: {{ site_url }}{% url 'job_list' %}?keyword={{ alert.keyword|default:'' }}&location={{ alert.location|default:'' }}
+
+Manage Your Alerts: {{ site_url }}{% url 'job_alerts' %}
+Unsubscribe: {{ site_url }}{% url 'unsubscribe' %}
+
+JobBoard Team
+{{ site_url }}
+
+This is an automated email. Please do not reply.

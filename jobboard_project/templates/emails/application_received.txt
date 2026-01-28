@@ -1,0 +1,40 @@
+Application Received - {{ job.title }}
+
+Hello {{ application.applicant.username }},
+
+Thank you for applying for the {{ job.title }} position at {{ job.company.name }}.
+
+APPLICATION DETAILS:
+Job Title: {{ job.title }}
+Company: {{ job.company.name }}
+Location: {{ job.location }}
+Applied On: {{ application.applied_at|date:"F d, Y" }}
+Application ID: {{ application.id }}
+
+WHAT HAPPENS NEXT?
+1. Application Received - Your application has been submitted
+2. Under Review - The hiring team will review your application
+3. Interview - If shortlisted, you'll be contacted for an interview
+4. Decision - Final hiring decision will be communicated
+
+TRACK YOUR APPLICATION:
+You can track your application status anytime by visiting your dashboard:
+{{ site_url }}{% url 'dashboard' %}
+
+VIEW JOB POSTING:
+{{ site_url }}{{ job.get_absolute_url }}
+
+TIPS:
+- Keep your profile updated with latest skills and experience
+- Check your email regularly for updates
+- Prepare for potential interviews
+- Explore other opportunities while waiting
+
+NEED HELP?
+Contact our support team at support@jobboard.com
+
+---
+JobBoard Team
+{{ site_url }}
+
+This is an automated confirmation email. Please do not reply.

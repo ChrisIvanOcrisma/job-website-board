@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Update - {{ application.job.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        /* Status-specific header classes */
+        .header-hired {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+        .header-shortlisted, .header-interview {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        .header-rejected {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        .header-default {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .content {
+            padding: 20px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .status-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        /* Status badge classes */
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .status-badge-hired {
+            background: #27ae60;
+        }
+        .status-badge-shortlisted, .status-badge-interview {
+            background: #3498db;
+        }
+        .status-badge-rejected {
+            background: #e74c3c;
+        }
+        .status-badge-default {
+            background: #667eea;
+        }
+        
+        /* Button classes */
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .button-hired {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+        .button-shortlisted, .button-interview {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        .button-rejected {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+        .button-default {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+        .next-steps {
+            background: #e8f4fc;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .timeline {
+            margin: 20px 0;
+        }
+        .timeline-step {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Dynamic header with appropriate class -->
+    <div class="header 
+        {% if new_status == 'HIRED' %}header-hired
+        {% elif new_status == 'SHORTLISTED' %}header-shortlisted
+        {% elif new_status == 'INTERVIEW' %}header-interview
+        {% elif new_status == 'REJECTED' %}header-rejected
+        {% else %}header-default{% endif %}">
+        
+        {% if new_status == 'HIRED' %}
+        <h1>🎉 Congratulations!</h1>
+        <p>You've been hired for {{ application.job.title }}</p>
+        {% elif new_status == 'SHORTLISTED' %}
+        <h1>🌟 You've Been Shortlisted!</h1>
+        <p>Your application for {{ application.job.title }} has been shortlisted</p>
+        {% elif new_status == 'INTERVIEW' %}
+        <h1>📅 Interview Scheduled</h1>
+        <p>You've been invited for an interview for {{ application.job.title }}</p>
+        {% elif new_status == 'REJECTED' %}
+        <h1>Application Update</h1>
+        <p>Update regarding your application for {{ application.job.title }}</p>
+        {% else %}
+        <h1>Application Status Updated</h1>
+        <p>Your application status has been updated</p>
+        {% endif %}
+    </div>
+    
+    <div class="content">
+        <p>Hello <strong>{{ application.applicant.username }}</strong>,</p>
+        
+        {% if new_status == 'HIRED' %}
+        <p>We are thrilled to inform you that you have been selected for the <strong>{{ application.job.title }}</strong> position at <strong>{{ application.job.company.name }}</strong>!</p>
+        
+        <div class="next-steps">
+            <h4>🎯 Next Steps:</h4>
+            <ol>
+                <li>Formal offer letter will be sent separately</li>
+                <li>Complete any required paperwork</li>
+                <li>Schedule your start date with HR</li>
+                <li>Prepare for your first day</li>
+            </ol>
+        </div>
+        
+        {% elif new_status == 'SHORTLISTED' %}
+        <p>Congratulations! Your application for <strong>{{ application.job.title }}</strong> at <strong>{{ application.job.company.name }}</strong> has been shortlisted.</p>
+        
+        <div class="next-steps">
+            <h4>🎯 Next Steps:</h4>
+            <ol>
+                <li>The hiring team will contact you shortly to schedule an interview</li>
+                <li>Prepare for potential interview questions</li>
+                <li>Review the job description and company information</li>
+                <li>Have your questions ready for the interview</li>
+            </ol>
+        </div>
+        
+        {% elif new_status == 'INTERVIEW' %}
+        <p>You have been invited for an interview for the <strong>{{ application.job.title }}</strong> position at <strong>{{ application.job.company.name }}</strong>.</p>
+        
+        {% if interview_details %}
+        <div class="status-card">
+            <h4>📅 Interview Details:</h4>
+            <p><strong>Date:</strong> {{ interview_details.date }}</p>
+            <p><strong>Time:</strong> {{ interview_details.time }}</p>
+            <p><strong>Format:</strong> {{ interview_details.format }}</p>
+            {% if interview_details.location %}
+            <p><strong>Location:</strong> {{ interview_details.location }}</p>
+            {% endif %}
+            {% if interview_details.link %}
+            <p><strong>Meeting Link:</strong> <a href="{{ interview_details.link }}">{{ interview_details.link }}</a></p>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="next-steps">
+            <h4>🎯 Preparation Tips:</h4>
+            <ul>
+                <li>Review the job description and your application</li>
+                <li>Research the company and its products/services</li>
+                <li>Prepare questions to ask the interviewer</li>
+                <li>Test your equipment if it's a virtual interview</li>
+                <li>Be ready 10 minutes before the scheduled time</li>
+            </ul>
+        </div>
+        
+        {% elif new_status == 'REJECTED' %}
+        <p>Thank you for applying for the <strong>{{ application.job.title }}</strong> position at <strong>{{ application.job.company.name }}</strong>.</p>
+        
+        <p>After careful consideration, we regret to inform you that we have decided to move forward with other candidates whose qualifications more closely match our current needs.</p>
+        
+        <div class="next-steps">
+            <h4>💡 Keep Going:</h4>
+            <ul>
+                <li>This decision is specific to this role and doesn't reflect on your abilities</li>
+                <li>Continue applying for other opportunities</li>
+                <li>Consider seeking feedback to improve future applications</li>
+                <li>Stay connected with us for future opportunities</li>
+            </ul>
+        </div>
+        
+        {% else %}
+        <p>Your application status for <strong>{{ application.job.title }}</strong> at <strong>{{ application.job.company.name }}</strong> has been updated.</p>
+        
+        <div class="status-card">
+            <h4>New Status:</h4>
+            <span class="status-badge 
+                {% if new_status == 'HIRED' %}status-badge-hired
+                {% elif new_status == 'SHORTLISTED' or new_status == 'INTERVIEW' %}status-badge-shortlisted
+                {% elif new_status == 'REJECTED' %}status-badge-rejected
+                {% else %}status-badge-default{% endif %}">
+                {{ new_status_display }}
+            </span>
+            {% if notes %}
+            <p><strong>Notes:</strong> {{ notes }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="status-card">
+            <h4>Application Summary:</h4>
+            <p><strong>Job:</strong> {{ application.job.title }}</p>
+            <p><strong>Company:</strong> {{ application.job.company.name }}</p>
+            <p><strong>Application ID:</strong> {{ application.id }}</p>
+            <p><strong>Updated On:</strong> {{ updated_at|date:"F d, Y" }}</p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ site_url }}{% url 'dashboard' %}" 
+               class="button 
+                {% if new_status == 'HIRED' %}button-hired
+                {% elif new_status == 'SHORTLISTED' or new_status == 'INTERVIEW' %}button-shortlisted
+                {% elif new_status == 'REJECTED' %}button-rejected
+                {% else %}button-default{% endif %}">
+                🔍 View Your Dashboard
+            </a>
+        </div>
+        
+        {% if new_status == 'REJECTED' %}
+        <div style="text-align: center; margin: 20px 0;">
+            <p>Don't get discouraged! Explore other opportunities:</p>
+            <a href="{{ site_url }}{% url 'job_list' %}" style="
+                display: inline-block;
+                padding: 10px 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                margin: 10px 0;
+            ">
+                🔍 Browse More Jobs
+            </a>
+        </div>
+        {% endif %}
+        
+        <p><strong>Need help?</strong> Contact our support team at <a href="mailto:support@jobboard.com">support@jobboard.com</a></p>
+    </div>
+    
+    <div class="footer">
+        <p>
+            <a href="{{ site_url }}{% url 'dashboard' %}" style="color: #666; text-decoration: none;">
+                Dashboard
+            </a> | 
+            <a href="{{ site_url }}{% url 'job_list' %}" style="color: #666; text-decoration: none;">
+                Browse Jobs
+            </a> | 
+            <a href="{{ site_url }}/help/" style="color: #666; text-decoration: none;">
+                Help Center
+            </a>
+        </p>
+        <p>JobBoard Team<br>
+        <a href="{{ site_url }}" style="color: #3498db;">{{ site_url }}</a></p>
+        <p><small>This is an automated status update email. Please do not reply.</small></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to JobBoard!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            padding: 30px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .icon-circle {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            margin: 10px;
+            padding: 15px;
+            color: #667eea;
+            font-size: 24px;
+        }
+        .step {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            line-height: 30px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+            font-weight: bold;
+        }
+        .features {
+            background: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .feature-icon {
+            color: #27ae60;
+            font-size: 20px;
+            margin-right: 15px;
+            min-width: 30px;
+        }
+        .role-specific {
+            background: #e8f4fc;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 Welcome to JobBoard!</h1>
+        <p>We're excited to have you on board, {{ user.username }}!</p>
+    </div>
+    
+    <div class="content">
+        <div style="text-align: center; margin: 20px 0;">
+            <div class="icon-circle">👋</div>
+            <div class="icon-circle">💼</div>
+            <div class="icon-circle">🚀</div>
+        </div>
+        
+        <p>Hello <strong>{{ user.username }}</strong>,</p>
+        
+        <p>Thank you for joining JobBoard as a <strong>{{ user.get_role_display }}</strong>. 
+        You're now part of our community connecting talent with opportunities!</p>
+        
+        {% if user.is_employer %}
+        <div class="role-specific">
+            <h3>🎯 As an Employer, you can:</h3>
+            <div class="feature-item">
+                <div class="feature-icon">🏢</div>
+                <div>
+                    <strong>Create Company Profile</strong><br>
+                    Showcase your company to attract top talent
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📝</div>
+                <div>
+                    <strong>Post Job Openings</strong><br>
+                    Reach qualified candidates quickly
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div>
+                    <strong>Track Applications</strong><br>
+                    Manage and review candidates efficiently
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{{ site_url }}{% url 'company_create' %}" class="button">
+                    🏢 Create Company Profile
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if user.is_job_seeker %}
+        <div class="role-specific">
+            <h3>🎯 As a Job Seeker, you can:</h3>
+            <div class="feature-item">
+                <div class="feature-icon">🔍</div>
+                <div>
+                    <strong>Search & Apply</strong><br>
+                    Find jobs matching your skills and interests
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📌</div>
+                <div>
+                    <strong>Save Jobs</strong><br>
+                    Bookmark interesting opportunities for later
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔔</div>
+                <div>
+                    <strong>Job Alerts</strong><br>
+                    Get notified when new jobs match your criteria
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{{ site_url }}{% url 'job_list' %}" class="button">
+                    🔍 Browse Jobs
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <h3>🚀 Getting Started:</h3>
+        <div class="step">
+            <div class="step-number">1</div>
+            <h4>Complete Your Profile</h4>
+            <p>Add your details to get personalized recommendations</p>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">2</div>
+            <h4>Explore Opportunities</h4>
+            <p>Browse jobs or post your first job opening</p>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">3</div>
+            <h4>Connect & Apply</h4>
+            <p>Start applying or reviewing applications</p>
+        </div>
+        
+        <div class="features">
+            <h3>✨ Platform Features:</h3>
+            <div class="feature-item">
+                <div class="feature-icon">✅</div>
+                <div><strong>Smart Search</strong> - Find exactly what you're looking for</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✅</div>
+                <div><strong>Easy Applications</strong> - Apply with just a few clicks</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✅</div>
+                <div><strong>Real-time Notifications</strong> - Never miss an opportunity</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✅</div>
+                <div><strong>Mobile Friendly</strong> - Access anywhere, anytime</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <p>Ready to get started?</p>
+            <a href="{{ site_url }}{% url 'dashboard' %}" class="button">
+                🚀 Go to Dashboard
+            </a>
+            <a href="{{ site_url }}" class="button" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
+                🌐 Visit Website
+            </a>
+        </div>
+        
+        <p>If you have any questions, feel free to contact our support team at 
+        <a href="mailto:support@jobboard.com">support@jobboard.com</a></p>
+    </div>
+    
+    <div class="footer">
+        <p>JobBoard - Connecting Talent with Opportunities</p>
+        <p>
+            <a href="{{ site_url }}" style="color: #666;">Website</a> | 
+            <a href="{{ site_url }}/privacy" style="color: #666;">Privacy Policy</a> | 
+            <a href="{{ site_url }}/terms" style="color: #666;">Terms of Service</a>
+        </p>
+        <p><small>This is an automated welcome email. Please do not reply to this message.</small></p>
+    </div>
+</body>
+</html>

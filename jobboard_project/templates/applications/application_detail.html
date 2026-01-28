@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Application - {{ application.applicant.username }} for {{ application.job.title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'application_list' %}">Applications</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Application Details</li>
+            </ol>
+        </nav>
+        
+        <h1>Application Details</h1>
+        <p class="text-muted">
+            {% if user.is_employer %}
+                {{ application.applicant.username }} applied for {{ application.job.title }}
+            {% else %}
+                Your application for {{ application.job.title }}
+            {% endif %}
+        </p>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if user.is_employer %}
+        <a href="{% url 'application_status' pk=application.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Update Status
+        </a>
+        {% endif %}
+        <a href="{% url 'application_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Application Header -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        {% if application.applicant.profile_picture %}
+                        <img src="{{ application.applicant.profile_picture.url }}" 
+                             alt="{{ application.applicant.username }}"
+                             class="profile-pic mb-3">
+                        {% else %}
+                        <div class="profile-pic bg-light d-flex align-items-center justify-content-center mx-auto mb-3">
+                            <i class="bi bi-person fs-1 text-muted"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <span class="badge bg-{% if application.status == 'HIRED' %}success{% elif application.status == 'REJECTED' %}danger{% elif application.status == 'SHORTLISTED' %}warning{% elif application.status == 'INTERVIEW' %}info{% else %}secondary{% endif %} fs-6">
+                                {{ application.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-9">
+                        <h2 class="mb-2">
+                            {% if user.is_employer %}
+                                {{ application.applicant.username }}
+                            {% else %}
+                                {{ application.applicant.get_full_name|default:application.applicant.username }}
+                            {% endif %}
+                        </h2>
+                        <p class="text-muted mb-3">{{ application.applicant.email }}</p>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <i class="bi bi-briefcase"></i> 
+                                    <strong>Job:</strong> 
+                                    <a href="{% url 'job_detail' slug=application.job.slug %}" class="text-decoration-none">
+                                        {{ application.job.title }}
+                                    </a>
+                                </p>
+                                <p class="mb-1">
+                                    <i class="bi bi-calendar"></i> 
+                                    <strong>Applied:</strong> {{ application.applied_at|date:"F d, Y" }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <i class="bi bi-clock"></i> 
+                                    <strong>Last Updated:</strong> {{ application.updated_at|timesince }} ago
+                                </p>
+                                {% if application.referred_by %}
+                                <p class="mb-1">
+                                    <i class="bi bi-person-plus"></i> 
+                                    <strong>Referred by:</strong> {{ application.referred_by.username }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ application.resume.url }}" target="_blank" class="btn btn-outline-primary">
+                                <i class="bi bi-file-earmark"></i> View Resume
+                            </a>
+                            
+                            <!-- WITHDRAW BUTTON FOR JOB SEEKER -->
+                           {% if user == application.applicant and application.status not in 'WITHDRAWN,REJECTED,HIRED' %}
+                            <form method="POST" action="{% url 'application_withdraw' pk=application.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger" 
+                                        onclick="return confirm('Are you sure you want to withdraw this application? This action cannot be undone.')">
+                                    <i class="bi bi-x-circle"></i> Withdraw
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            {% if user.is_employer %}
+                            <a href="mailto:{{ application.applicant.email }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-envelope"></i> Send Email
+                            </a>
+                            <a href="tel:{{ application.applicant.phone|default:'#' }}" class="btn btn-outline-info">
+                                <i class="bi bi-telephone"></i> Call
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Card for Job Seekers -->
+        {% if not user.is_employer %}
+        <div class="card dashboard-card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-activity"></i> Application Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2">
+                            <span class="badge bg-{% if application.status == 'HIRED' %}success{% elif application.status == 'REJECTED' %}danger{% elif application.status == 'SHORTLISTED' %}warning{% elif application.status == 'INTERVIEW' %}info{% else %}secondary{% endif %} p-2 fs-6">
+                                {{ application.get_status_display }}
+                            </span>
+                        </h4>
+                        <p class="mb-0 text-muted">
+                            {% if application.status == 'PENDING' %}
+                            Your application is under review by the employer.
+                            {% elif application.status == 'SHORTLISTED' %}
+                            Congratulations! You've been shortlisted for this position.
+                            {% elif application.status == 'INTERVIEW' %}
+                            You have been selected for an interview.
+                            {% elif application.status == 'HIRED' %}
+                            Congratulations! You've been hired for this position.
+                            {% elif application.status == 'REJECTED' %}
+                            Thank you for your application. Unfortunately, you were not selected for this position.
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <p class="mb-0 small text-muted">
+                            Last updated: {{ application.updated_at|date:"F d, Y" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Cover Letter -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-text"></i> Cover Letter</h5>
+            </div>
+            <div class="card-body">
+                {{ application.cover_letter|linebreaks|default:"No cover letter provided." }}
+            </div>
+        </div>
+        
+        <!-- Screening Questions -->
+        {% if responses %}
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-question-circle"></i> Screening Questions</h5>
+            </div>
+            <div class="card-body">
+                {% for response in responses %}
+                <div class="mb-4 pb-3 border-bottom">
+                    <h6>{{ response.question.question }}</h6>
+                    <p class="mb-0">{{ response.answer|linebreaks }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Activity Timeline -->
+        {% if events %}
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Activity Timeline</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for event in events %}
+                    <div class="timeline-item mb-4">
+                        <div class="timeline-marker 
+                            {% if event.event_type == 'APPLIED' %}bg-primary
+                            {% elif event.event_type == 'SHORTLISTED' %}bg-warning
+                            {% elif event.event_type == 'HIRED' %}bg-success
+                            {% elif event.event_type == 'REJECTED' %}bg-danger
+                            {% else %}bg-info{% endif %}">
+                        </div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1">{{ event.get_event_type_display }}</h6>
+                                <small class="text-muted">{{ event.created_at|timesince }} ago</small>
+                            </div>
+                            {% if event.performed_by %}
+                            <p class="mb-1 small">
+                                By: {{ event.performed_by.username }}
+                            </p>
+                            {% endif %}
+                            {% if event.notes %}
+                            <p class="mb-0 small text-muted">{{ event.notes }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Initial application -->
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1">Application Submitted</h6>
+                                <small class="text-muted">{{ application.applied_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-0 small text-muted">Candidate applied for the position</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Quick Actions (for Employers only) -->
+        {% if user.is_employer %}
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#notesModal">
+                        <i class="bi bi-pencil-square"></i> Add Note
+                    </button>
+                    <a href="mailto:{{ application.applicant.email }}" class="btn btn-outline-success">
+                        <i class="bi bi-envelope"></i> Send Email
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Status History -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-arrow-left-right"></i> Status History</h5>
+            </div>
+            <div class="card-body">
+                <div class="status-timeline">
+                    {% for status in status_history %}
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="status-dot 
+                            {% if status.event_type == 'APPLIED' %}bg-primary
+                            {% elif status.event_type == 'SHORTLISTED' %}bg-warning
+                            {% elif status.event_type == 'HIRED' %}bg-success
+                            {% elif status.event_type == 'REJECTED' %}bg-danger
+                            {% else %}bg-info{% endif %}">
+                        </div>
+                        <div class="ms-3">
+                            <small class="d-block">{{ status.get_event_type_display }}</small>
+                            <small class="text-muted">{{ status.created_at|date:"M d, h:i A" }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <!-- Add initial status -->
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="status-dot bg-primary"></div>
+                        <div class="ms-3">
+                            <small class="d-block">Submitted</small>
+                            <small class="text-muted">{{ application.applied_at|date:"M d, h:i A" }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Application Info -->
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Application Information</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3">
+                        <strong><i class="bi bi-file-earmark"></i> Resume:</strong><br>
+                        <a href="{{ application.resume.url }}" target="_blank" class="small">
+                            {{ application.resume.name|cut:"resumes/" }}
+                        </a>
+                    </li>
+                    <li class="mb-3">
+                        <strong><i class="bi bi-calendar"></i> Applied:</strong><br>
+                        <span class="small">{{ application.applied_at|date:"F d, Y h:i A" }}</span>
+                    </li>
+                    <li class="mb-3">
+                        <strong><i class="bi bi-clock"></i> Last Updated:</strong><br>
+                        <span class="small">{{ application.updated_at|date:"F d, Y h:i A" }}</span>
+                    </li>
+                    {% if application.referral_source %}
+                    <li class="mb-3">
+                        <strong><i class="bi bi-link"></i> Referral Source:</strong><br>
+                        <span class="small">{{ application.referral_source }}</span>
+                    </li>
+                    {% endif %}
+                    {% if application.expected_salary %}
+                    <li class="mb-3">
+                        <strong><i class="bi bi-cash"></i> Expected Salary:</strong><br>
+                        <span class="small">{{ application.expected_salary }} {{ application.job.salary_currency|default:"PHP" }}</span>
+                    </li>
+                    {% endif %}
+                    {% if application.notice_period %}
+                    <li class="mb-3">
+                        <strong><i class="bi bi-calendar-check"></i> Notice Period:</strong><br>
+                        <span class="small">{{ application.notice_period }}</span>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <strong><i class="bi bi-hash"></i> Application ID:</strong><br>
+                        <code class="small">{{ application.id }}</code>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notes Modal (for Employers only) -->
+{% if user.is_employer %}
+<div class="modal fade" id="notesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <textarea class="form-control" name="note" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Visibility</label>
+                        <select class="form-select" name="visibility">
+                            <option value="PRIVATE">Private (Only you)</option>
+                            <option value="TEAM">Team (All recruiters)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    padding-left: 20px;
+}
+
+.status-timeline .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #dee2e6;
+}
+</style>
+{% endblock %}

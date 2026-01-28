@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Saved Jobs - JobBoard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1><i class="bi bi-bookmark"></i> Saved Jobs</h1>
+        <p class="text-muted">Your bookmarked jobs for later review</p>
+    </div>
+</div>
+
+{% if saved_jobs %}
+<div class="row">
+    <div class="col-md-9">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            You have {{ saved_jobs.count }} saved job{{ saved_jobs.count|pluralize }}. 
+            Apply to them before they expire!
+        </div>
+        
+        <!-- SCROLLABLE CONTAINER FOR SAVED JOBS -->
+        <div class="saved-jobs-container" style="max-height: 600px; overflow-y: auto; padding-right: 10px;">
+            {% for saved_job in saved_jobs %}
+            <div class="card job-card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <h5 class="card-title">
+                                <a href="{% url 'job_detail' slug=saved_job.job.slug %}" class="text-decoration-none">
+                                    {{ saved_job.job.title }}
+                                </a>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <a href="{% url 'company_detail' slug=saved_job.job.company.slug %}" class="text-decoration-none">
+                                    {{ saved_job.job.company.name }}
+                                </a>
+                            </h6>
+                            <p class="card-text">
+                                <i class="bi bi-geo-alt"></i> {{ saved_job.job.location }}
+                                {% if saved_job.job.is_remote %}
+                                <span class="badge remote-badge ms-2">Remote</span>
+                                {% endif %}
+                            </p>
+                            <p class="card-text">
+                                <span class="badge salary-badge">{{ saved_job.job.get_salary_range }}</span>
+                                <span class="badge bg-secondary ms-2">{{ saved_job.job.employment_type }}</span>
+                            </p>
+                            <div class="mt-2">
+                                {% for tag in saved_job.job.tags.all|slice:":3" %}
+                                <span class="badge bg-light text-dark border me-1">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="btn-group-vertical">
+                                <a href="{% url 'job_detail' slug=saved_job.job.slug %}" class="btn btn-primary btn-sm mb-2">
+                                    View Details
+                                </a>
+                                <!-- FIXED: Changed from apply_job to job_detail since apply_job doesn't exist -->
+                                <a href="{% url 'job_detail' slug=saved_job.job.slug %}#apply-section" class="btn btn-success btn-sm mb-2">
+                                    <i class="bi bi-send"></i> Apply Now
+                                </a>
+                                <form method="POST" action="{% url 'save_job' job_id=saved_job.job.id %}" class="mb-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="bi bi-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted d-flex justify-content-between">
+                    <small>Saved {{ saved_job.saved_at|timesince }} ago</small>
+                    <small>
+                        {% if saved_job.job.deadline %}
+                        Apply by: {{ saved_job.job.deadline|date:"M d, Y" }}
+                        {% else %}
+                        No deadline
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <!-- END SCROLLABLE CONTAINER -->
+        
+        <!-- Bulk Actions -->
+        <div class="card dashboard-card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'job_list' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i> Find More Jobs
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <form method="POST" action="{% url 'clear_saved_jobs' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning w-100" 
+                                    onclick="return confirm('Remove all saved jobs?')">
+                                <i class="bi bi-trash"></i> Clear All
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <!-- Stats -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Saved Jobs Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h1 class="display-4">{{ saved_jobs.count }}</h1>
+                    <p class="text-muted">Total Saved</p>
+                </div>
+                
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <span class="ms-2">
+                            {% if applied_count %}{{ applied_count }}{% else %}0{% endif %} Applied
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-clock text-warning"></i>
+                        <span class="ms-2">
+                            {% if expiring_soon %}{{ expiring_soon }}{% else %}0{% endif %} Expiring Soon
+                        </span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-coin text-primary"></i>
+                        <span class="ms-2">
+                            {% if high_salary_count %}{{ high_salary_count }}{% else %}0{% endif %} High Salary
+                        </span>
+                    </li>
+                    <li>
+                        <i class="bi bi-house text-info"></i>
+                        <span class="ms-2">
+                            {% if remote_count %}{{ remote_count }}{% else %}0{% endif %} Remote
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Tips -->
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Tips</h5>
+            </div>
+            <div class="card-body">
+                <p class="small">
+                    <strong>Apply early!</strong> Jobs with earlier application dates have better response rates.
+                </p>
+                <p class="small">
+                    <strong>Customize applications</strong> for each job instead of using the same resume.
+                </p>
+                <p class="small">
+                    <strong>Set reminders</strong> for application deadlines to avoid missing opportunities.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="bi bi-bookmark fs-1 text-muted"></i>
+            <h4 class="mt-3">No saved jobs yet</h4>
+            <p class="text-muted mb-4">Save jobs you're interested in to apply later.</p>
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    <a href="{% url 'job_list' %}" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-search"></i> Browse Jobs
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'job_alerts' %}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-bell"></i> Set Up Job Alerts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.saved-jobs-container {
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d #f8f9fa;
+}
+
+.saved-jobs-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.saved-jobs-container::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.saved-jobs-container::-webkit-scrollbar-thumb {
+    background-color: #6c757d;
+    border-radius: 4px;
+}
+
+.saved-jobs-container::-webkit-scrollbar-thumb:hover {
+    background-color: #495057;
+}
+</style>
+{% endblock %}

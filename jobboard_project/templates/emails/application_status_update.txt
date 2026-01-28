@@ -1,0 +1,86 @@
+Application Status Update - {{ application.job.title }}
+
+Hello {{ application.applicant.username }},
+
+{% if new_status == 'HIRED' %}
+CONGRATULATIONS! You've been hired for {{ application.job.title }}
+{% elif new_status == 'SHORTLISTED' %}
+You've been shortlisted for {{ application.job.title }}
+{% elif new_status == 'INTERVIEW' %}
+Interview scheduled for {{ application.job.title }}
+{% elif new_status == 'REJECTED' %}
+Update regarding your application for {{ application.job.title }}
+{% else %}
+Application status updated for {{ application.job.title }}
+{% endif %}
+
+APPLICATION DETAILS:
+Job Title: {{ application.job.title }}
+Company: {{ application.job.company.name }}
+New Status: {{ new_status_display }}
+Application ID: {{ application.id }}
+Updated On: {{ updated_at|date:"F d, Y" }}
+
+{% if new_status == 'HIRED' %}
+NEXT STEPS:
+1. Formal offer letter will be sent separately
+2. Complete any required paperwork
+3. Schedule your start date with HR
+4. Prepare for your first day
+
+Congratulations on this achievement!
+
+{% elif new_status == 'SHORTLISTED' %}
+NEXT STEPS:
+1. The hiring team will contact you shortly to schedule an interview
+2. Prepare for potential interview questions
+3. Review the job description and company information
+4. Have your questions ready for the interview
+
+Great job on being shortlisted!
+
+{% elif new_status == 'INTERVIEW' %}
+{% if interview_details %}
+INTERVIEW DETAILS:
+Date: {{ interview_details.date }}
+Time: {{ interview_details.time }}
+Format: {{ interview_details.format }}
+{% if interview_details.location %}Location: {{ interview_details.location }}{% endif %}
+{% if interview_details.link %}Meeting Link: {{ interview_details.link }}{% endif %}
+
+PREPARATION TIPS:
+- Review the job description and your application
+- Research the company and its products/services
+- Prepare questions to ask the interviewer
+- Test your equipment if it's a virtual interview
+- Be ready 10 minutes before the scheduled time
+{% endif %}
+
+{% elif new_status == 'REJECTED' %}
+We appreciate your interest in this position and the time you invested in the application process.
+
+This decision is specific to this role and doesn't reflect on your abilities. We encourage you to apply for other opportunities that match your skills and experience.
+
+KEEP GOING:
+- Continue applying for other opportunities
+- Consider seeking feedback to improve future applications
+- Stay connected with us for future opportunities
+{% endif %}
+
+VIEW YOUR DASHBOARD:
+{{ site_url }}{% url 'dashboard' %}
+
+VIEW JOB POSTING:
+{{ site_url }}{{ application.job.get_absolute_url }}
+
+BROWSE MORE JOBS:
+{{ site_url }}{% url 'job_list' %}
+
+NEED HELP?
+Contact our support team at support@jobboard.com
+
+---
+JobBoard Team
+{{ site_url }}
+
+This is an automated status update email. Please do not reply.

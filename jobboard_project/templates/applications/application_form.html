@@ -1,0 +1,206 @@
+<!-- templates/applications/apply.html - SIMPLIFIED VERSION -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Apply for {{ job.title }} - JobBoard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card dashboard-card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-send"></i> Apply for: {{ job.title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Job Summary -->
+                <div class="alert alert-info mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            {% if job.company.logo %}
+                            <img src="{{ job.company.logo.url }}" alt="{{ job.company.name }}" 
+                                 class="rounded" style="width: 60px; height: 60px; object-fit: contain;">
+                            {% else %}
+                            <i class="bi bi-building fs-3 text-muted"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="alert-heading mb-1">{{ job.title }}</h5>
+                            <p class="mb-1">
+                                <i class="bi bi-building"></i> {{ job.company.name }} • 
+                                <i class="bi bi-geo-alt"></i> {{ job.location }}
+                                {% if job.is_remote %}
+                                <span class="badge bg-success ms-2">Remote</span>
+                                {% endif %}
+                            </p>
+                            {% if job.salary_min and job.salary_max %}
+                            <p class="mb-0">
+                                <i class="bi bi-cash"></i> {{ job.salary_currency }} {{ job.salary_min|floatformat:0 }} - {{ job.salary_max|floatformat:0 }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- SECTION 1: BASIC INFO -->
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">
+                            <i class="bi bi-person"></i> Your Information
+                        </h5>
+                        
+                      <div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Full Name *</label>
+        <input type="text" class="form-control" name="full_name" 
+               value="{{ user.get_full_name|default:user.username }}" 
+               placeholder="Enter your full name" required>
+        <small class="text-muted">Your full name as it appears on your resume</small>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Email *</label>
+        <input type="email" class="form-control" name="email" 
+               value="{{ user.email }}" 
+               placeholder="Enter your email address" required>
+        <small class="text-muted">We'll contact you via this email</small>
+    </div>
+</div>
+                    
+                    <!-- SECTION 2: DOCUMENTS -->
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">
+                            <i class="bi bi-file-earmark"></i> Documents
+                        </h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Resume/CV *</label>
+                            <input type="file" class="form-control" name="resume" accept=".pdf,.doc,.docx" required>
+                            <small class="text-muted">Upload your resume (PDF, DOC, DOCX - Max 5MB)</small>
+                            
+                            {% if user.resume %}
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="use_existing_resume" id="useExisting">
+                                <label class="form-check-label" for="useExisting">
+                                    Use my existing resume from profile
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Cover Letter *</label>
+                            <textarea class="form-control" name="cover_letter" rows="5" required
+                                      placeholder="Why are you interested in this position? What makes you a good fit?">{{ default_cover_letter }}</textarea>
+                            <small class="text-muted">Tailor your cover letter for this job</small>
+                        </div>
+                    </div>
+                    
+                    <!-- SECTION 3: QUICK QUESTIONS -->
+                    <div class="mb-4">
+                        <h5 class="text-primary mb-3">
+                            <i class="bi bi-question-circle"></i> Quick Questions
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Expected Salary (Monthly) *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">{{ job.salary_currency|default:"PHP" }}</span>
+                                    <input type="number" class="form-control" name="expected_salary" required
+                                           placeholder="e.g., 50000">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Notice Period *</label>
+                                <select class="form-select" name="notice_period" required>
+                                    <option value="">Select...</option>
+                                    <option value="Immediate">Immediate</option>
+                                    <option value="15 days">15 days</option>
+                                    <option value="30 days">30 days</option>
+                                    <option value="60 days">60 days</option>
+                                    <option value="90 days">90 days</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">How did you hear about this job?</label>
+                            <select class="form-select" name="source">
+                                <option value="">Select...</option>
+                                <option value="JobBoard">JobBoard Website</option>
+                                <option value="LinkedIn">LinkedIn</option>
+                                <option value="Facebook">Facebook</option>
+                                <option value="Referral">Referral</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- TERMS AND SUBMIT -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I confirm that all information provided is accurate and complete.
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'job_detail' slug=job.slug %}" class="btn btn-outline-secondary me-md-2">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-send"></i> Submit Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle between existing resume and new upload
+    const existingResumeCheckbox = document.getElementById('useExisting');
+    const fileInput = document.querySelector('input[name="resume"]');
+    
+    if (existingResumeCheckbox && fileInput) {
+        existingResumeCheckbox.addEventListener('change', function() {
+            fileInput.disabled = this.checked;
+            fileInput.required = !this.checked;
+        });
+    }
+    
+    // File validation
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.disabled) return;
+            
+            const file = this.files[0];
+            if (!file) return;
+            
+            // Check file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`"${file.name}" exceeds 5MB limit. Please choose a smaller file.`);
+                this.value = '';
+                return;
+            }
+            
+            // Check file extension
+            const allowedExtensions = /(\.pdf|\.doc|\.docx)$/i;
+            if (!allowedExtensions.exec(file.name)) {
+                alert(`"${file.name}" - Only PDF, DOC, DOCX files are allowed.`);
+                this.value = '';
+                return;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
